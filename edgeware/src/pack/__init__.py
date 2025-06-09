@@ -19,6 +19,7 @@ import logging
 import random
 from pathlib import Path
 
+import magic
 import filetype
 from paths import PATH, Assets, CustomAssets, PackPaths
 
@@ -48,7 +49,7 @@ class Pack:
         self.block_corruption_moods()
 
         # Media
-        self.images = list_media(self.paths.image, filetype.is_image)
+        self.images = list_media(self.paths.image, self.is_image)
         self.videos = list_media(self.paths.video, filetype.is_video)
         self.audio = list_media(self.paths.audio, filetype.is_audio)
         self.hypnos = list_media(self.paths.hypno, filetype.is_image) or [CustomAssets.hypno()]
@@ -59,6 +60,13 @@ class Pack:
         self.startup_splash = next((path for path in self.paths.splash if path.is_file()), None) or CustomAssets.startup_splash()
 
         logging.info(f"Active moods: {self.active_moods()}")
+
+    def is_image(path_to_file : Path):
+        try:
+            if "image" in magic.from_file(path_to_file, mime=True):
+                return True
+        except IsADirectoryError:
+            return False
 
     def block_corruption_moods(self) -> None:
         active_moods = self.active_moods()
